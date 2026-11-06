@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenCode Go Meter</title>
+  <link rel="stylesheet" href="popup.css">
+  <script type="module" src="popup.mjs"></script>
+</head>
+<body>
+  <div id="dashboard">
+    <header class="header">
+      <img src="icons/meter-48.png" width="36" height="36" alt="">
+      <h1>OpenCode <span>Go</span></h1>
+      <button id="refresh" type="button" class="icon-button" data-label="Обновить лимиты">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 5v5h-5M4 19v-5h5M5.5 10a7 7 0 0 1 11.6-4l2.9 4m-16 4 2.9 4a7 7 0 0 0 11.6-4"/>
+        </svg>
+      </button>
+      <button id="open-settings" type="button" class="icon-button" data-label="Настройки">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16"/>
+          <circle cx="8" cy="7" r="2" fill="var(--panel)"/>
+          <circle cx="15" cy="12" r="2" fill="var(--panel)"/>
+          <circle cx="10" cy="17" r="2" fill="var(--panel)"/>
+        </svg>
+      </button>
+    </header>
+
+    <label id="workspace-picker" class="workspace" hidden>
+      <span data-text="Пространство"></span>
+      <select id="workspace"></select>
+    </label>
+
+    <p id="status" class="status" role="status">Запрашиваем лимиты…</p>
+    <a id="signin" class="signin" href="https://opencode.ai/console" target="_blank" rel="noopener" hidden><span data-text="Открыть OpenCode Console"></span> ↗</a>
+
+    <section id="quota" class="quota" aria-labelledby="quota-heading" hidden>
+      <div class="section-heading">
+        <h2 id="quota-heading">Израсходовано</h2>
+        <span id="badge-caption"></span>
+      </div>
+      <div id="windows"></div>
+    </section>
+
+    <details id="history" class="history" hidden>
+      <summary data-text="История лимитов"></summary>
+      <p id="history-note">График появится после нескольких замеров.</p>
+      <div id="chart" hidden></div>
+      <section id="activity" class="activity" aria-labelledby="activity-heading" hidden>
+        <h2 id="activity-heading" data-text="Расход по дням и часам"></h2>
+        <p data-text="Оценка в п. п. месячного лимита по замерам. Штриховка означает пропуск."></p>
+        <div id="heatmap"></div>
+      </section>
+    </details>
+
+    <footer class="footer">
+      <a id="console" href="https://opencode.ai/console" target="_blank" rel="noopener"><span data-text="Консоль"></span> ↗</a>
+    </footer>
+  </div>
+
+  <section id="settings-panel" aria-labelledby="settings-heading" hidden>
+    <header class="header settings-header">
+      <button id="close-settings" class="icon-button" type="button" data-label="К лимитам">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 12H4m7-7-7 7 7 7"/>
+        </svg>
+      </button>
+      <h1 id="settings-heading" data-text="Настройки"></h1>
+    </header>
+    <form id="settings-form">
+      <section class="setting-card" aria-labelledby="language-heading">
+        <h2 id="language-heading"><label for="language" data-text="Язык"></label></h2>
+        <select id="language" name="language">
+          <option value="browser" data-text="Как в браузере"></option>
+          <option value="ru">Русский</option>
+          <option value="en">English</option>
+        </select>
+        <p id="browser-language"></p>
+        <p data-text="Применяется к интерфейсу и уведомлениям."></p>
+      </section>
+      <section class="setting-card" aria-labelledby="notifications-heading">
+        <h2 id="notifications-heading" data-text="Уведомления"></h2>
+        <label class="switch"><span data-text="Уведомлять при заполнении лимитов"></span><input name="notifications" type="checkbox" role="switch"></label>
+        <div id="thresholds" class="thresholds" role="group" aria-labelledby="notifications-heading">
+          <label><input name="thresholds" type="checkbox" value="75"> <span data-text="при"></span> 75%</label>
+          <label><input name="thresholds" type="checkbox" value="90"> <span data-text="при"></span> 90%</label>
+          <label><input name="thresholds" type="checkbox" value="100"> <span data-text="при"></span> 100%</label>
+        </div>
+        <button id="test-notification" class="test-notification" type="button" data-text="Проверить уведомление"></button>
+        <p id="notification-permission"></p>
+        <p id="notification-result" role="status" hidden></p>
+      </section>
+      <section class="setting-card" aria-labelledby="display-heading">
+        <h2 id="display-heading" data-text="Отображение"></h2>
+        <label class="switch"><span data-text="Показывать остаток вместо расхода"></span><input name="showRemaining" type="checkbox" role="switch"></label>
+        <label for="theme" data-text="Оформление"></label>
+        <select id="theme" name="theme">
+          <option value="system" data-text="Как в системе"></option>
+          <option value="light" data-text="Светлое"></option>
+          <option value="dark" data-text="Тёмное"></option>
+        </select>
+      </section>
+      <section class="setting-card" aria-labelledby="refresh-heading">
+        <h2 id="refresh-heading" data-text="Обновление"></h2>
+        <select id="refresh-interval" name="refreshMinutes" data-label="Интервал обновления"></select>
+      </section>
+      <p id="settings-error" role="status" hidden data-text="Не удалось сохранить настройки."></p>
+    </form>
+  </section>
+
+  <template id="meter-template">
+    <div class="meter">
+      <h3></h3>
+      <div class="meter-reading">
+        <span class="value"></span>
+        <progress max="100"></progress>
+      </div>
+      <p class="reset"></p>
+    </div>
+  </template>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "OpenCode Go Meter",
+  "version": "1.0.2",
+  "description": "Лимиты OpenCode Go на панели Chrome: 5 часов, неделя и месяц.",
+  "minimum_chrome_version": "120",
+  "permissions": ["alarms", "storage", "notifications"],
+  "host_permissions": ["https://opencode.ai/*"],
+  "background": {
+    "service_worker": "background.mjs",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "OpenCode Go Meter",
+    "default_icon": {
+      "16": "icons/meter-16.png",
+      "32": "icons/meter-32.png"
+    }
+  },
+  "icons": {
+    "16": "icons/meter-16.png",
+    "32": "icons/meter-32.png",
+    "48": "icons/meter-48.png",
+    "128": "icons/meter-128.png"
+  }
+}
